@@ -86,12 +86,18 @@ pipeline {
         // }
         stage("CD de la aplicacion - build dockerfile") {
             steps {
-                sh "docker build -t curso-devops-lab3 ."
-                docker.withRegistry("https://index.docker.io/v1/", "credencial_dh") {
-                    sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest"
-                    sh "docker push roro05/curso-devops-lab3:latest"
-                }
+                script {
+                    sh "docker build -t curso-devops-lab3 ."
+                    docker.withRegistry("https://index.docker.io/v1/", "credencial_dh") {
+                        sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest"
+                        sh "docker push roro05/curso-devops-lab3:latest"
+                    }
 
+                    docker.withRegistry("https://ghcr.io", "credencial_gh") {
+                        sh "docker tag curso-devops-lab3 ghcr.io/roro05/curso-devops-lab3:latest"
+                        sh "docker push ghcr.io/roro05/curso-devops-lab3:latest"
+                    }
+                }
                 // sh "docker build -t ${env.IMAGE_NAME} ."
                 // script {
                 //     if (!env.APP_SEMANTIC_VERSION?.trim()) {
