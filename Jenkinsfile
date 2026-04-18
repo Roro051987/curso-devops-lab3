@@ -94,13 +94,13 @@ pipeline {
                     sh 'docker build -t curso-devops-lab3 .'
 
                     docker.withRegistry('https://index.docker.io/v1/', 'credencial_dh') {
-                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest'
-                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}'
-                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.BUILD_NUMBER}'
+                        sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest"
+                        sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}"
+                        sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.BUILD_NUMBER}"
                         
-                        sh 'docker push roro05/curso-devops-lab3:latest' 
-                        sh 'docker push roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}'
-                        sh 'docker push roro05/curso-devops-lab3:${env.BUILD_NUMBER}' 
+                        sh "docker push roro05/curso-devops-lab3:latest" 
+                        sh "docker push roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}"
+                        sh "docker push roro05/curso-devops-lab3:${env.BUILD_NUMBER}"
          
                     }
 
