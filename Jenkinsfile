@@ -93,7 +93,7 @@ pipeline {
 
                     docker.withRegistry('https://index.docker.io/v1/', 'credencial_dh') {
                         sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest'
-                        sh 'docker push roro05/curso-devops-lab3:latest'
+                        sh 'docker push roro05/curso-devops-lab3:latest' 
                     }
 
                     docker.withRegistry('https://ghcr.io', 'credencial_gh') {
