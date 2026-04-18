@@ -99,7 +99,7 @@ pipeline {
                     docker.withRegistry('https://ghcr.io', 'credencial_gh') {
                         sh 'docker tag curso-devops-lab3 ghcr.io/Roro051987/curso-devops-lab3:latest'
                         sh 'docker push ghcr.io/Roro051987/curso-devops-lab3:latest'
-                    }
+                    } 
                 }
             }
         }
