@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'node:24'
-            // args '-v /var/run/docker.sock:/var/run/docker.sock'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
@@ -31,7 +31,7 @@ pipeline {
             steps {
                 sh "docker build -t curso-devops-lab3 ."
                 
-                }
+            }
         }
     }    
 
