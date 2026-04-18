@@ -101,7 +101,7 @@ pipeline {
                         sh "docker push ghcr.io/roro051987/curso-devops-lab3:latest"
                     } 
                 }
-            }
+            } 
         }
         // stage("CD - Despliegue continuo en develop"){
         //     agent {
