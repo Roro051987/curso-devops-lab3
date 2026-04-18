@@ -44,7 +44,7 @@ pipeline {
                         sh "npm run lint"
                     }
                 }
-                stage("CI de la aplicacion - test") {
+                stage("CI de la aplicacion - testcov") {
                     steps {
                         sh "npm run test:cov"
                     }
@@ -56,34 +56,34 @@ pipeline {
                 }
             }
         }
-        // stage("Quality Assurance"){
-        //     agent {
-        //         docker {
-        //             image 'sonarsource/sonar-scanner-cli'
-        //             args '--network=devops-infra_default'
-        //             reuseNode true
-        //         }
-        //     }
-        //     stages{
-        //         stage("validacion de codigo"){
-        //             steps{
-        //                 withSonarQubeEnv('sonarqube'){
-        //                     sh 'sonar-scanner'
-        //                 }
-        //             }
-        //         }
-        //         stage('validacion quality gate'){
-        //             steps{
-        //                 script{
-        //                     def  qualityGate = waitForQualityGate() // esperar por el resultado del qualitygate en un endpoint de jenkins, que se gatilla desde sonar via webhook.
-        //                     if(qualityGate.status != 'OK'){
-        //                         error "La puerta de calidad ha fallado : ${qualityGate.status}"
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage("Quality Assurance"){
+            agent {
+                docker {
+                    image 'sonarsource/sonar-scanner-cli'
+                    args '--network=devops-infra_default'
+                    reuseNode true
+                }
+            }
+            stages{
+                stage("validación de código"){
+                    steps{
+                        withSonarQubeEnv('sonarqube'){
+                            sh 'sonar-scanner'
+                        }
+                    }
+                }
+                stage('validacion quality gate'){
+                    steps{
+                        script{
+                            def  qualityGate = waitForQualityGate() // esperar por el resultado del qualitygate en un endpoint de jenkins, que se gatilla desde sonar via webhook.
+                            if(qualityGate.status != 'OK'){
+                                error "La puerta de calidad ha fallado : ${qualityGate.status}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
         stage('CD de la aplicacion - build dockerfile') {
             
             steps {
