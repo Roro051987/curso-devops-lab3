@@ -87,6 +87,8 @@ pipeline {
         stage('CD de la aplicacion - build dockerfile') {
             
             steps {
+                echo "APP_SEMANTIC_VERSION ${env.APP_SEMANTIC_VERSION}"
+                echo "BUILD_NUMBER ${env.BUILD_NUMBER}"
                 script {
                     sh 'docker version'
                     sh 'docker build -t curso-devops-lab3 .'
@@ -94,6 +96,21 @@ pipeline {
                     docker.withRegistry('https://index.docker.io/v1/', 'credencial_dh') {
                         sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest'
                         sh 'docker push roro05/curso-devops-lab3:latest' 
+
+                        // sh "docker tag ${localImage} ${repo}:latest"
+                        // sh "docker tag ${localImage} ${repo}:${env.BUILD_NUMBER}"
+                        // sh "docker tag ${localImage} ${repo}:${env.APP_SEMANTIC_VERSION}"
+                        // sh "docker push ${repo}:latest"
+                        // sh "docker push ${repo}:${env.BUILD_NUMBER}"
+                        // sh "docker push ${repo}:${env.APP_SEMANTIC_VERSION}"
+
+
+
+
+
+
+
+
                     }
 
                     docker.withRegistry("https://ghcr.io", "credencial_gh") {
