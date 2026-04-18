@@ -84,30 +84,23 @@ pipeline {
         //         }
         //     }
         // }
-        stage("CD de la aplicacion - build dockerfile") {
+        stage('CD de la aplicacion - build dockerfile') {
+            
             steps {
                 script {
-                    sh "docker build -t curso-devops-lab3 ."
-                    docker.withRegistry("https://index.docker.io/v1/", "credencial_dh") {
-                        sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest"
-                        sh "docker push roro05/curso-devops-lab3:latest"
+                    sh 'docker version'
+                    sh 'docker build -t curso-devops-lab3 .'
+
+                    docker.withRegistry('https://index.docker.io/v1/', 'credencial_dh') {
+                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest'
+                        sh 'docker push roro05/curso-devops-lab3:latest'
                     }
 
-                    docker.withRegistry("https://ghcr.io", "credencial_gh") {
-                        sh "docker tag curso-devops-lab3 ghcr.io/roro05/curso-devops-lab3:latest"
-                        sh "docker push ghcr.io/roro05/curso-devops-lab3:latest"
+                    docker.withRegistry('https://ghcr.io', 'credencial_gh') {
+                        sh 'docker tag curso-devops-lab3 ghcr.io/Roro051987/curso-devops-lab3:latest'
+                        sh 'docker push ghcr.io/Roro051987/curso-devops-lab3:latest'
                     }
                 }
-                // sh "docker build -t ${env.IMAGE_NAME} ."
-                // script {
-                //     if (!env.APP_SEMANTIC_VERSION?.trim()) {
-                //         error("APP_SEMANTIC_VERSION no definida en el stage anterior")
-                //     }
-                //     // Aca llamamos a la funcion que definimos al principio , y ya esta funcion 
-                //     // hace login en dockerhub y github con docker.withRegistry y sube ambas imagenes
-                //     tagAndPush(env.IMAGE_NAME, env.DH_REPO, "https://index.docker.io/v1/", "credencial_dh")
-                //     tagAndPush(env.IMAGE_NAME, env.GHCR_REPO, "https://ghcr.io", "credencial_gh")
-                // }
             }
         }
         // stage("CD - Despliegue continuo en develop"){
