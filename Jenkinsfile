@@ -32,7 +32,6 @@ pipeline {
                 sh "docker build -t curso-devops-lab3 ."
                 
                 }
-            }
         }
     }    
 
