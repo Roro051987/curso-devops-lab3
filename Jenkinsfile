@@ -1,15 +1,15 @@
-def tagAndPush(String localImage, String repo, String registry, String credential) {
+// def tagAndPush(String localImage, String repo, String registry, String credential) {
 
-    docker.withRegistry(registry, credential) {
-        sh "docker tag ${localImage} ${repo}:latest"
-        sh "docker tag ${localImage} ${repo}:${env.BUILD_NUMBER}"
-        sh "docker tag ${localImage} ${repo}:${env.APP_SEMANTIC_VERSION}"
-        sh "docker push ${repo}:latest"
-        sh "docker push ${repo}:${env.BUILD_NUMBER}"
-        sh "docker push ${repo}:${env.APP_SEMANTIC_VERSION}"
-    }
+//     docker.withRegistry(registry, credential) {
+//         sh "docker tag ${localImage} ${repo}:latest"
+//         sh "docker tag ${localImage} ${repo}:${env.BUILD_NUMBER}"
+//         sh "docker tag ${localImage} ${repo}:${env.APP_SEMANTIC_VERSION}"
+//         sh "docker push ${repo}:latest"
+//         sh "docker push ${repo}:${env.BUILD_NUMBER}"
+//         sh "docker push ${repo}:${env.APP_SEMANTIC_VERSION}"
+//     }
 
-}
+// }
 
 
 pipeline {
@@ -86,16 +86,22 @@ pipeline {
         // }
         stage("CD de la aplicacion - build dockerfile") {
             steps {
-                sh "docker build -t ${env.IMAGE_NAME} ."
-                script {
-                    if (!env.APP_SEMANTIC_VERSION?.trim()) {
-                        error("APP_SEMANTIC_VERSION no definida en el stage anterior")
-                    }
-                    // Aca llamamos a la funcion que definimos al principio , y ya esta funcion 
-                    // hace login en dockerhub y github con docker.withRegistry y sube ambas imagenes
-                    tagAndPush(env.IMAGE_NAME, env.DH_REPO, "https://index.docker.io/v1/", "credencial_dh")
-                    tagAndPush(env.IMAGE_NAME, env.GHCR_REPO, "https://ghcr.io", "credencial_gh")
+                sh "docker build -t curso-devops-lab3 ."
+                docker.withRegistry("https://index.docker.io/v1/", "credencial_dh") {
+                    sh "docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest"
+                    sh "docker push roro05/curso-devops-lab3:latest"
                 }
+
+                // sh "docker build -t ${env.IMAGE_NAME} ."
+                // script {
+                //     if (!env.APP_SEMANTIC_VERSION?.trim()) {
+                //         error("APP_SEMANTIC_VERSION no definida en el stage anterior")
+                //     }
+                //     // Aca llamamos a la funcion que definimos al principio , y ya esta funcion 
+                //     // hace login en dockerhub y github con docker.withRegistry y sube ambas imagenes
+                //     tagAndPush(env.IMAGE_NAME, env.DH_REPO, "https://index.docker.io/v1/", "credencial_dh")
+                //     tagAndPush(env.IMAGE_NAME, env.GHCR_REPO, "https://ghcr.io", "credencial_gh")
+                // }
             }
         }
         // stage("CD - Despliegue continuo en develop"){
