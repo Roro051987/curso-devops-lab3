@@ -1,25 +1,16 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building...'
-                // Add your build commands here
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Testing...'
-                // Add your test commands here
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-                // Add your deploy commands here
-            }
+    agent {
+        docker {
+            image 'node:24'
+            // args '-v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
+
+    stages {
+        stage('CI de la aplicación') {
+            steps {
+                sh "npm install"
+            }
+        }
 
 }
