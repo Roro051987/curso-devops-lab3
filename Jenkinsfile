@@ -27,6 +27,13 @@ pipeline {
                 sh "npm run build"
             }
         }
+        stage('Pruebas unitarias - build docker') {
+            steps {
+                sh "docker build -t curso-devops-lab3 ."
+                
+                }
+            }
+        }
     }    
 
 }
