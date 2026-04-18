@@ -95,27 +95,23 @@ pipeline {
 
                     docker.withRegistry('https://index.docker.io/v1/', 'credencial_dh') {
                         sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:latest'
+                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}'
+                        sh 'docker tag curso-devops-lab3 roro05/curso-devops-lab3:${env.BUILD_NUMBER}'
+                        
                         sh 'docker push roro05/curso-devops-lab3:latest' 
-
-                        // sh "docker tag ${localImage} ${repo}:latest"
-                        // sh "docker tag ${localImage} ${repo}:${env.BUILD_NUMBER}"
-                        // sh "docker tag ${localImage} ${repo}:${env.APP_SEMANTIC_VERSION}"
-                        // sh "docker push ${repo}:latest"
-                        // sh "docker push ${repo}:${env.BUILD_NUMBER}"
-                        // sh "docker push ${repo}:${env.APP_SEMANTIC_VERSION}"
-
-
-
-
-
-
-
-
+                        sh 'docker push roro05/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}'
+                        sh 'docker push roro05/curso-devops-lab3:${env.BUILD_NUMBER}' 
+         
                     }
 
                     docker.withRegistry("https://ghcr.io", "credencial_gh") {
                         sh "docker tag curso-devops-lab3 ghcr.io/roro051987/curso-devops-lab3:latest"
+                        sh "docker tag curso-devops-lab3 ghcr.io/roro051987/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}"
+                        sh "docker tag curso-devops-lab3 ghcr.io/roro051987/curso-devops-lab3:${env.BUILD_NUMBER}"
+                        
                         sh "docker push ghcr.io/roro051987/curso-devops-lab3:latest"
+                        sh "docker push ghcr.io/roro051987/curso-devops-lab3:${env.APP_SEMANTIC_VERSION}"
+                        sh "docker push ghcr.io/roro051987/curso-devops-lab3:${env.BUILD_NUMBER}"
                     } 
                 }
             } 
