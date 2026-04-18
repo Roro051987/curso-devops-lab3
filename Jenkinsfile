@@ -10,6 +10,8 @@ pipeline {
         stage('CI de la aplicación') {
             steps {
                 sh "npm install"
+                sh "ln -l"
+                sh "hostname"
             }
         }
 
