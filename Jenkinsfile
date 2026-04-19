@@ -42,56 +42,84 @@ pipeline {
                 }
             }
         }
-        stage("Quality Assurance") {
-        agent {
-            docker {
-                image 'node:24'
-                args '--network=devops-infra_default'
-                reuseNode true
+        stage("Quality Assurance"){
+            agent {
+                docker {
+                    image 'sonarsource/sonar-scanner-cli'
+                    args '--network=devops-infra_default'
+                    reuseNode true
+                }
             }
-        }
-        stages {
-            stage("validacion de codigo") {
-                steps {
-                    script {
-                        def scannerHome = tool 'sonar-scanner'
-                        withSonarQubeEnv('sonarqube') {
-                            sh """
-                                echo "Esperando SonarQube listo..."
-                                until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
-                                    echo "SonarQube no está listo aún..."
-                                    sleep 5
-                                done
-
-                                ${scannerHome}/bin/sonar-scanner \
-                                    -Dsonar.projectKey=curso-devops-lab3 \
-                                    -Dsonar.projectName=curso-devops-lab3 \
-                                    -Dsonar.sources=src \
-                                    -Dsonar.tests=test \
-                                    -Dsonar.host.url=$SONAR_HOST_URL \
-                                    -Dsonar.token=$SONAR_AUTH_TOKEN \
-                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
-                                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-                            """
+            stages{
+                stage("validacion de codigo"){
+                    steps{
+                        withSonarQubeEnv('sonarqube'){
+                            sh 'sonar-scanner'
                         }
                     }
                 }
-            }
-
-            stage('validacion quality gate') {
-                steps {
-                    timeout(time: 5, unit: 'MINUTES') {
-                        script {
-                            def qualityGate = waitForQualityGate()
-                            if (qualityGate.status != 'OK') {
-                                error "La puerta de calidad ha fallado: ${qualityGate.status}"
+                stage('validacion quality gate'){
+                    steps{
+                        script{
+                            def  qualityGate = waitForQualityGate() // esperar por el resultado del qualitygate en un endpoint de jenkins, que se gatilla desde sonar via webhook.
+                            if(qualityGate.status != 'OK'){
+                                error "La puerta de calidad ha fallado : ${qualityGate.status}"
                             }
                         }
                     }
                 }
             }
         }
-    }
+        // stage("Quality Assurance") {
+        //     agent {
+        //         docker {
+        //             image 'node:24'
+        //             args '--network=devops-infra_default'
+        //             reuseNode true
+        //         }
+        //     }
+        //     stages {
+        //         stage("validacion de codigo") {
+        //             steps {
+        //                 script {
+        //                     def scannerHome = tool 'sonar-scanner'
+        //                     withSonarQubeEnv('sonarqube') {
+        //                         sh """
+        //                             echo "Esperando SonarQube listo..."
+        //                             until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
+        //                                 echo "SonarQube no está listo aún..."
+        //                                 sleep 5
+        //                             done
+
+        //                             ${scannerHome}/bin/sonar-scanner \
+        //                                 -Dsonar.projectKey=curso-devops-lab3 \
+        //                                 -Dsonar.projectName=curso-devops-lab3 \
+        //                                 -Dsonar.sources=src \
+        //                                 -Dsonar.tests=test \
+        //                                 -Dsonar.host.url=$SONAR_HOST_URL \
+        //                                 -Dsonar.token=$SONAR_AUTH_TOKEN \
+        //                                 -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
+        //                                 -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+        //                         """
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        //         stage('validacion quality gate') {
+        //             steps {
+        //                 timeout(time: 5, unit: 'MINUTES') {
+        //                     script {
+        //                         def qualityGate = waitForQualityGate()
+        //                         if (qualityGate.status != 'OK') {
+        //                             error "La puerta de calidad ha fallado: ${qualityGate.status}"
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         stage('CD de la aplicacion - build dockerfile') {
             
             steps {
