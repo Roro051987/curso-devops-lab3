@@ -61,9 +61,9 @@ pipeline {
                                     sleep 5
                                 done
 
-                                npm install
+                               npm install -g sonar-scanner
 
-                                npx sonar-scanner \
+                                sonar-scanner \
                                 -Dsonar.projectKey=curso-devops-lab3 \
                                 -Dsonar.projectName=curso-devops-lab3 \
                                 -Dsonar.sources=src,test \
