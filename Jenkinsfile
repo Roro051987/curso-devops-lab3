@@ -39,7 +39,7 @@ pipeline {
                     steps {
                         sh "npm run build"
                     }
-                }
+                } 
             }
         }
         stage("Quality Assurance") {
