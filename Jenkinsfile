@@ -55,12 +55,6 @@ pipeline {
                     steps {
                         withSonarQubeEnv('sonarqube') {
                             sh """
-                                echo "Esperando SonarQube listo..."
-                                until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
-                                    echo "SonarQube no está listo aún..."
-                                    sleep 5
-                                done
-
                                 sonar-scanner \
                                 -Dsonar.host.url=$SONAR_HOST_URL \
                                 -Dsonar.token=$SONAR_AUTH_TOKEN \
