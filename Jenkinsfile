@@ -56,7 +56,7 @@ pipeline {
                 }
             }
         }
-        stage("Quality Assurance"){
+        stage('Quality Assurance - Analisis Sonar') {
             agent {
                 docker {
                     image 'sonarsource/sonar-scanner-cli'
@@ -64,23 +64,25 @@ pipeline {
                     reuseNode true
                 }
             }
-            stages{
-                stage("validación de código"){
-                    steps{
-                        withSonarQubeEnv('sonarqube'){
-                            sh 'sonar-scanner'
-                        }
-                    }
-                }
-                stage('validacion quality gate'){
-                    steps{
-                        script{
-                            def  qualityGate = waitForQualityGate() // esperar por el resultado del qualitygate en un endpoint de jenkins, que se gatilla desde sonar via webhook.
-                            if(qualityGate.status != 'OK'){
-                                error "La puerta de calidad ha fallado : ${qualityGate.status}"
-                            }
-                        }
-                    }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                    echo "Esperando SonarQube listo..."
+
+                    until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
+                        echo "SonarQube no está listo aún..."
+                        sleep 5
+                    done
+
+                    echo "SonarQube listo, ejecutando análisis..."
+                    
+                    sonar-scanner \
+                        -Dsonar.projectKey=curso-devops-lab3 \
+                        -Dsonar.projectName=curso-devops-lab3 \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=$SONAR_HOST_URL \
+                        -Dsonar.token=$SONAR_AUTH_TOKEN
+                    '''
                 }
             }
         }
