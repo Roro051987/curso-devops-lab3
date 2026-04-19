@@ -1,5 +1,11 @@
 pipeline {
     agent any
+    environment {
+        K8S_NAMESPACE  = 'roro'
+        K8S_DEPLOYMENT = 'curso-devops-lab3'
+        K8S_CONTAINER  = 'curso-devops-lab3'
+        GHCR_REPO      = 'ghcr.io/roro051987/curso-devops-lab3'
+    }
     stages {
         stage("Integracion continua") {
             agent {
