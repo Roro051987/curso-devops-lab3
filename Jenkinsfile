@@ -1,17 +1,3 @@
-// def tagAndPush(String localImage, String repo, String registry, String credential) {
-
-//     docker.withRegistry(registry, credential) {
-//         sh "docker tag ${localImage} ${repo}:latest"
-//         sh "docker tag ${localImage} ${repo}:${env.BUILD_NUMBER}"
-//         sh "docker tag ${localImage} ${repo}:${env.APP_SEMANTIC_VERSION}"
-//         sh "docker push ${repo}:latest"
-//         sh "docker push ${repo}:${env.BUILD_NUMBER}"
-//         sh "docker push ${repo}:${env.APP_SEMANTIC_VERSION}"
-//     }
-
-// }
-
-
 pipeline {
     agent any
     stages {
@@ -56,33 +42,48 @@ pipeline {
                 }
             }
         }
-        stage('Quality Assurance - Analisis Sonar') {
+        stage("Quality Assurance") {
             agent {
                 docker {
-                    image 'sonarsource/sonar-scanner-cli'
+                    image 'node:24'
                     args '--network=devops-infra_default'
                     reuseNode true
                 }
             }
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh '''
-                    echo "Esperando SonarQube listo..."
+            stages {
+                stage("validacion de codigo") {
+                    steps {
+                        withSonarQubeEnv('sonarqube') {
+                            sh '''
+                                echo "Esperando SonarQube listo..."
+                                until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
+                                    echo "SonarQube no está listo aún..."
+                                    sleep 5
+                                done
 
-                    until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
-                        echo "SonarQube no está listo aún..."
-                        sleep 5
-                    done
+                                npm install
 
-                    echo "SonarQube listo, ejecutando análisis..."
-                    
-                    sonar-scanner \
-                        -Dsonar.projectKey=curso-devops-lab3 \
-                        -Dsonar.projectName=curso-devops-lab3 \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=$SONAR_HOST_URL \
-                        -Dsonar.token=$SONAR_AUTH_TOKEN
-                    '''
+                                npx sonar-scanner \
+                                -Dsonar.projectKey=curso-devops-lab3 \
+                                -Dsonar.projectName=curso-devops-lab3 \
+                                -Dsonar.sources=src,test \
+                                -Dsonar.host.url=$SONAR_HOST_URL \
+                                -Dsonar.token=$SONAR_AUTH_TOKEN \
+                                -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
+                                -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                            '''
+                        }
+                    }
+                }
+                stage('validacion quality gate') {
+                    steps {
+                        script {
+                            def qualityGate = waitForQualityGate()
+                            if (qualityGate.status != 'OK') {
+                                error "La puerta de calidad ha fallado: ${qualityGate.status}"
+                            }
+                        }
+                    }
                 }
             }
         }
