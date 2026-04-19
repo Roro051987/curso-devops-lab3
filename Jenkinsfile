@@ -78,56 +78,7 @@ pipeline {
                 }
             }
         }
-        // stage("Quality Assurance") {
-        //     agent {
-        //         docker {
-        //             image 'node:24'
-        //             args '--network=devops-infra_default'
-        //             reuseNode true
-        //         }
-        //     }
-        //     stages {
-        //         stage("validacion de codigo") {
-        //             steps {
-        //                 script {
-        //                     def scannerHome = tool 'sonar-scanner'
-        //                     withSonarQubeEnv('sonarqube') {
-        //                         sh """
-        //                             echo "Esperando SonarQube listo..."
-        //                             until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
-        //                                 echo "SonarQube no está listo aún..."
-        //                                 sleep 5
-        //                             done
-
-        //                             ${scannerHome}/bin/sonar-scanner \
-        //                                 -Dsonar.projectKey=curso-devops-lab3 \
-        //                                 -Dsonar.projectName=curso-devops-lab3 \
-        //                                 -Dsonar.sources=src \
-        //                                 -Dsonar.tests=test \
-        //                                 -Dsonar.host.url=$SONAR_HOST_URL \
-        //                                 -Dsonar.token=$SONAR_AUTH_TOKEN \
-        //                                 -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
-        //                                 -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-        //                         """
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        //         stage('validacion quality gate') {
-        //             steps {
-        //                 timeout(time: 5, unit: 'MINUTES') {
-        //                     script {
-        //                         def qualityGate = waitForQualityGate()
-        //                         if (qualityGate.status != 'OK') {
-        //                             error "La puerta de calidad ha fallado: ${qualityGate.status}"
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        
         stage('CD de la aplicacion - build dockerfile') {
             
             steps {
@@ -160,26 +111,21 @@ pipeline {
                 }
             } 
         }
-        // stage("CD - Despliegue continuo en develop"){
-        //     agent {
-        //         docker {
-        //             image 'alpine/k8s:1.34.6'
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps{
-        //         script {
-        //             if (!env.APP_SEMANTIC_VERSION?.trim()) {
-        //                 error("APP_SEMANTIC_VERSION no definida para el despliegue")
-        //             }
-        //         }
-        //         withKubeConfig([credentialsId: 'credencial-k8']) {
-        //             sh """
-        //                 kubectl -n ${env.K8S_NAMESPACE} set image deployment/${env.K8S_DEPLOYMENT} ${env.K8S_CONTAINER}=${env.DH_REPO}:${env.APP_SEMANTIC_VERSION}
-        //                 kubectl -n ${env.K8S_NAMESPACE} rollout status deployment/${env.K8S_DEPLOYMENT}
-        //             """
-        //         }
-        //     }
-        // }
+        stage("CD - Despliegue continuo en develop") {
+            agent {
+                docker {
+                    image 'alpine/k8s:1.34.6'
+                    reuseNode true
+                }
+            }
+            steps {
+                withCredentials([file(credentialsId: 'credencial-k8', variable: 'KUBECONFIG')]) {
+                    sh """
+                        kubectl -n ${env.K8S_NAMESPACE} set image deployment/${env.K8S_DEPLOYMENT} ${env.K8S_CONTAINER}=${env.GHCR_REPO}:${env.BUILD_NUMBER}
+                        kubectl -n ${env.K8S_NAMESPACE} rollout status deployment/${env.K8S_DEPLOYMENT}
+                    """
+                }
+            }
+        }
     }
 }
