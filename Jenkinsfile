@@ -62,7 +62,7 @@ pipeline {
                             """
                         }
                     }
-                }
+                } 
 
                 stage('validacion quality gate') {
                     steps {
