@@ -43,40 +43,44 @@ pipeline {
             }
         }
         stage("Quality Assurance") {
-            agent {
-                docker {
-                    image 'node:24'
-                    args '--network=devops-infra_default'
-                    reuseNode true
-                }
+        agent {
+            docker {
+                image 'node:24'
+                args '--network=devops-infra_default'
+                reuseNode true
             }
-            stages {
-                stage("validacion de codigo") {
-                    steps {
+        }
+        stages {
+            stage("validacion de codigo") {
+                steps {
+                    script {
+                        def scannerHome = tool 'sonar-scanner'
                         withSonarQubeEnv('sonarqube') {
-                            sh '''
+                            sh """
                                 echo "Esperando SonarQube listo..."
                                 until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
                                     echo "SonarQube no está listo aún..."
                                     sleep 5
                                 done
 
-                               npm install -g sonar-scanner
-
-                                sonar-scanner \
-                                -Dsonar.projectKey=curso-devops-lab3 \
-                                -Dsonar.projectName=curso-devops-lab3 \
-                                -Dsonar.sources=src,test \
-                                -Dsonar.host.url=$SONAR_HOST_URL \
-                                -Dsonar.token=$SONAR_AUTH_TOKEN \
-                                -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
-                                -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-                            '''
+                                ${scannerHome}/bin/sonar-scanner \
+                                    -Dsonar.projectKey=curso-devops-lab3 \
+                                    -Dsonar.projectName=curso-devops-lab3 \
+                                    -Dsonar.sources=src \
+                                    -Dsonar.tests=test \
+                                    -Dsonar.host.url=$SONAR_HOST_URL \
+                                    -Dsonar.token=$SONAR_AUTH_TOKEN \
+                                    -Dsonar.exclusions=node_modules/**,dist/**,coverage/** \
+                                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                            """
                         }
                     }
                 }
-                stage('validacion quality gate') {
-                    steps {
+            }
+
+            stage('validacion quality gate') {
+                steps {
+                    timeout(time: 5, unit: 'MINUTES') {
                         script {
                             def qualityGate = waitForQualityGate()
                             if (qualityGate.status != 'OK') {
@@ -87,6 +91,7 @@ pipeline {
                 }
             }
         }
+    }
         stage('CD de la aplicacion - build dockerfile') {
             
             steps {
