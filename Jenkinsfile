@@ -43,56 +43,55 @@ pipeline {
             }
         }
         stage("Quality Assurance") {
-            agent {
-                docker {
-                    image 'node:24-bookworm'
-                    args '--network=devops-infra_default'
-                    reuseNode true
+    agent {
+        docker {
+            image 'node:24-bookworm'
+            args '--network=devops-infra_default'
+            reuseNode true
+        }
+    }
+    stages {
+        stage("validacion de codigo") {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh """
+                        apt-get update
+                        apt-get install -y openjdk-17-jre curl
+
+                        echo "Esperando SonarQube listo..."
+                        until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
+                            echo "SonarQube no está listo aún..."
+                            sleep 5
+                        done
+
+                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
+                        export PATH=\$JAVA_HOME/bin:\$PATH
+                        export SONAR_SCANNER_OPTS="-Xmx1024m"
+
+                        npm install -g sonar-scanner
+
+                        sonar-scanner \
+                          -Dsonar.host.url=\$SONAR_HOST_URL \
+                          -Dsonar.token=\$SONAR_AUTH_TOKEN
+                    """
                 }
             }
-            stages {
-                stage("validacion de codigo") {
-                    steps {
-                        script {
-                            def scannerHome = tool 'sonar-scanner'
-                            withSonarQubeEnv('sonarqube') {
-                                sh '''
-                                    apt-get update
-                                    apt-get install -y openjdk-17-jre curl
+        }
 
-                                    echo "Esperando SonarQube listo..."
-                                    until curl -s http://sonarqube:9000/api/system/status | grep -q '"status":"UP"'; do
-                                        echo "SonarQube no está listo aún..."
-                                        sleep 5
-                                    done
-
-                                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                    export PATH=$JAVA_HOME/bin:$PATH
-                                    export SONAR_SCANNER_OPTS="-Xmx1024m"
-
-                                    '"${scannerHome}"'/bin/sonar-scanner \
-                                    -Dsonar.host.url=$SONAR_HOST_URL \
-                                    -Dsonar.token=$SONAR_AUTH_TOKEN
-                                '''
-                            }
-                        }
-                    }
-                }
-
-                stage('validacion quality gate') {
-                    steps {
-                        timeout(time: 5, unit: 'MINUTES') {
-                            script {
-                                def qualityGate = waitForQualityGate()
-                                if (qualityGate.status != 'OK') {
-                                    error "La puerta de calidad ha fallado: ${qualityGate.status}"
-                                }
-                            }
+        stage('validacion quality gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    script {
+                        def qualityGate = waitForQualityGate()
+                        if (qualityGate.status != 'OK') {
+                            error "La puerta de calidad ha fallado: ${qualityGate.status}"
                         }
                     }
                 }
             }
         }
+    }
+}
         // stage("Quality Assurance") {
         //     agent {
         //         docker {
