@@ -64,7 +64,7 @@ pipeline {
                                 sonar-scanner \
                                 -Dsonar.host.url=$SONAR_HOST_URL \
                                 -Dsonar.token=$SONAR_AUTH_TOKEN \
-                                -Dsonar.javascript.node.maxspace=4096
+                                -Dsonar.javascript.node.maxspace=2048
                             """
                         }
                     }
